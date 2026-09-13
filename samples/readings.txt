@@ -1,0 +1,5 @@
+sensor-1|{"temperature":50}
+sensor-1|{"temperature":75}
+sensor-1|{"temperature":90}
+sensor-2|{"temperature":75}
+sensor-3|{"temperature":75}

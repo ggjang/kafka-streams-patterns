@@ -1,0 +1,2 @@
+sensor-1|{"warning":60,"critical":80}
+sensor-2|{"warning":80,"critical":100}
