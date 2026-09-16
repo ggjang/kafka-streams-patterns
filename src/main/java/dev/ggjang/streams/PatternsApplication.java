@@ -11,10 +11,15 @@ public final class PatternsApplication {
     private PatternsApplication() {}
 
     public static void main(String[] args) throws InterruptedException {
-        if (args.length != 1 || !args[0].equals("join")) {
-            throw new IllegalArgumentException("Usage: java -jar target/kafka-streams-patterns.jar join");
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Usage: java -jar target/kafka-streams-patterns.jar <join|changes|route>");
         }
-        Topology topology = RuleJoinTopology.build();
+        Topology topology = switch (args[0]) {
+            case "join" -> RuleJoinTopology.build();
+            case "changes" -> StateChangeTopology.build();
+            case "route" -> EventRoutingTopology.build();
+            default -> throw new IllegalArgumentException("Unknown example: " + args[0] + "; use join, changes or route");
+        };
         Properties config = new Properties();
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "patterns-" + args[0] + "-v1");
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,

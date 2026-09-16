@@ -8,6 +8,8 @@
 | 예제 | 주요 API | 배우는 내용 |
 | --- | --- | --- |
 | [01. 센서별 규칙 조인](docs/01-stream-table-join.md) | `KStream`, `GlobalKTable`, `leftJoin` | 변경되는 기준 데이터를 측정값에 적용 |
+| [02. 상태 변경 감지](docs/02-state-change.md) | `groupByKey`, `aggregate`, `toStream`, `filter` | 센서별 이전 심각도를 기억하고 변경 시에만 출력 |
+| [03. 이벤트 생성·분기](docs/03-event-routing.md) | `flatMap`, `split`, `branch` | 측정값을 보관하고 목적별 이벤트를 별도 토픽으로 전달 |
 
 ## 개발 환경
 
@@ -24,12 +26,14 @@ JSON 필수 필드 누락과 잘못된 임계치는 실패로 처리합니다. �
 mvn verify
 ```
 
-`TopologyTestDriver`가 입력, 테이블 갱신, 출력을 검증합니다. 실제 브로커의 리밸런싱, 장애 복구,
+`TopologyTestDriver`가 조인, 상태 변경, 이벤트 분기, 샘플 출력과 예제 간 연결을 검증합니다. 실제 브로커의 리밸런싱, 장애 복구,
 파티션 간 순서와 트랜잭션은 이 테스트만으로 검증하지 못합니다.
 
 ## Kafka에서 실행
 
-저장소 루트에서 실행합니다.
+저장소 루트에서 실행합니다. 아래는 01번 실행 절차입니다.
+02번은 [상태 변경 감지](docs/02-state-change.md#단독-실행),
+03번은 [이벤트 생성·분기](docs/03-event-routing.md#단독-실행)의 절차를 따릅니다.
 
 ```bash
 docker compose up -d --wait
@@ -59,6 +63,31 @@ sensor-3|{"temperature":75.0,"severity":"NO_RULE"}
 
 앱과 소비자는 `Ctrl+C`로 종료합니다. 브로커만 잠시 중지하려면 `docker compose stop`을 사용합니다.
 다시 시작하려면 `docker compose start`를 실행합니다.
+
+### 예제 선택과 연결
+
+| 실행 인자 | application.id | 입력 | 출력 |
+| --- | --- | --- | --- |
+| `join` | `patterns-join-v1` | sensor-readings, sensor-rules | evaluated-readings |
+| `changes` | `patterns-changes-v1` | evaluated-readings | sensor-state-changes |
+| `route` | `patterns-route-v1` | evaluated-readings | archived-readings, alert-candidates, missing-rule-readings |
+
+02·03번은 `samples/evaluated-readings.txt`로 독립 실행할 수 있습니다.
+세 앱을 별도 터미널에서 실행하면 01번의 결과를 02·03번이 각각 소비합니다.
+02번은 반복 상태를 억제하고, 03번은 모든 측정값을 보관하므로 서로 직렬로 연결하지 않습니다.
+
+```mermaid
+flowchart LR
+    R["sensor-readings"] --> J["01 join"]
+    T["sensor-rules"] --> J
+    J --> E["evaluated-readings"]
+    E --> C["02 changes"]
+    E --> B["03 route"]
+    C --> S["sensor-state-changes"]
+    B --> A["archived-readings"]
+    B --> N["alert-candidates"]
+    B --> M["missing-rule-readings"]
+```
 
 ### 설정과 데이터 초기화
 

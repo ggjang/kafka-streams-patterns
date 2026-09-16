@@ -1,0 +1,8 @@
+sensor-1|{"temperature":50,"severity":"NORMAL"}
+sensor-1|{"temperature":75,"severity":"WARNING"}
+sensor-1|{"temperature":77,"severity":"WARNING"}
+sensor-1|{"temperature":90,"severity":"CRITICAL"}
+sensor-1|{"temperature":50,"severity":"NORMAL"}
+sensor-2|{"temperature":75,"severity":"NO_RULE"}
+sensor-2|{"temperature":76,"severity":"NO_RULE"}
+sensor-2|{"temperature":75,"severity":"WARNING"}
